@@ -2,6 +2,7 @@ package com.example.server.controllers;
 
 import com.example.server.dtos.request.UserCreationRequest;
 import com.example.server.dtos.response.UserResponse;
+import com.example.server.enums.UserStatusEnum;
 import com.example.server.services.UserService;
 import jakarta.mail.MessagingException;
 import lombok.AccessLevel;
@@ -24,7 +25,7 @@ public class UserController {
 
     @PostMapping
     ResponseEntity<UserResponse> createUser(@RequestBody UserCreationRequest request) throws MessagingException, IOException {
-        return ResponseEntity.status(HttpStatus.OK).body(userService.createUser(request));
+        return ResponseEntity.status(HttpStatus.OK).body(userService.createUser(request, UserStatusEnum.INVALID));
     }
 
     @PostMapping("/details")
@@ -37,5 +38,11 @@ public class UserController {
     @GetMapping("/home")
     ResponseEntity<String> home() {
         return ResponseEntity.ok().body("home");
+    }
+
+    @GetMapping("/verify")
+    ResponseEntity<String> verify(@RequestParam String code, @RequestParam String email) {
+        userService.verify(email, code);
+        return ResponseEntity.status(HttpStatus.OK).body("User verified successfully");
     }
 }

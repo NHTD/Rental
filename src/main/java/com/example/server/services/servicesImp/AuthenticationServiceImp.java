@@ -3,7 +3,6 @@ package com.example.server.services.servicesImp;
 import com.example.server.dtos.request.AuthenticationRequest;
 import com.example.server.dtos.response.AuthenticationResponse;
 import com.example.server.exception.RentalHomeDataInvalidException;
-import com.example.server.repositories.UserRepository;
 import com.example.server.security.JwtProvider;
 import com.example.server.security.UserDetailsServiceImp;
 import com.example.server.services.AuthenticationService;
@@ -28,7 +27,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

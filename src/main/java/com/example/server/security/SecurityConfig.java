@@ -45,7 +45,7 @@ public class SecurityConfig {
     String clientSecret;
 
     final String[] POST_PUBLIC = {"/users", "/authenticate", "/roles", "/permissions", "/posts/generateFakerPosts"};
-    final String[] GET_PUBLIC = {"/categories", "/posts", "/prices", "/areas", "/posts/new-posts", "/provinces", "/authenticate/social-login", "/authenticate/social/callback", "/users/home"};
+    final String[] GET_PUBLIC = {"/categories", "/posts", "/prices", "/areas", "/posts/new-posts", "/provinces", "/authenticate/social-login", "/authenticate/social/callback", "/users/home", "/users/verify"};
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

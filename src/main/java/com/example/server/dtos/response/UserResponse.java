@@ -23,6 +23,7 @@ public class UserResponse {
 
     String zalo;
     String googleAccountId;
+    String facebookAccountId;
 
     Set<Role> roles;
 }

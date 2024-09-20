@@ -4,6 +4,7 @@ import com.example.server.dtos.request.AuthenticationRequest;
 import com.example.server.dtos.request.UserCreationRequest;
 import com.example.server.dtos.response.AuthenticationResponse;
 import com.example.server.dtos.response.ResponseObject;
+import com.example.server.enums.UserStatusEnum;
 import com.example.server.models.User;
 import com.example.server.repositories.UserRepository;
 import com.example.server.services.AuthenticationService;
@@ -59,13 +60,14 @@ public class AuthenticationController {
         String picture = "";
 
         String googleAccountId = (String) userInfo.get("sub");
+        String facebookAccountId = (String) userInfo.get("id");
         String name = (String) userInfo.get("name");
 //        String givenName = (String) userInfo.get("given_name");
 //        String familyName = (String) userInfo.get("family_name");
-        picture = (String) userInfo.get("picture");
-        if("facebook".equals(loginType)){
-            picture = (String) userInfo.get("picture");
-        }
+//        picture = (String) userInfo.get("picture");
+//        if("facebook".equals(loginType)){
+//            picture = (String) userInfo.get("picture");
+//        }
 
         String email = (String) userInfo.get("email");
 //        Boolean emailVerified = (Boolean) userInfo.get("email_verified");
@@ -83,12 +85,12 @@ public class AuthenticationController {
         if (loginType.trim().equals("google")) {
             userCreationRequest.setGoogleAccountId(googleAccountId);
         }else if (loginType.trim().equals("facebook")) {
-            userCreationRequest.setFacebookAccountId("");
+            userCreationRequest.setFacebookAccountId(facebookAccountId);
         }
 
         Optional<User> user = userRepository.findByAccountType(email);
         if(!user.isPresent()){
-            userService.createUser(userCreationRequest);
+            userService.createUser(userCreationRequest, UserStatusEnum.INVALID);
         }
         return this.signIn(authenticationRequest);
     }

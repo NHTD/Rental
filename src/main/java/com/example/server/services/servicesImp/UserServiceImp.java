@@ -2,6 +2,7 @@ package com.example.server.services.servicesImp;
 
 import com.example.server.dtos.request.UserCreationRequest;
 import com.example.server.dtos.response.UserResponse;
+import com.example.server.enums.UserStatusEnum;
 import com.example.server.exception.RentalHomeDataModelNotFoundException;
 import com.example.server.mapper.UserMapper;
 import com.example.server.models.Role;
@@ -19,6 +20,7 @@ import jakarta.mail.MessagingException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -41,12 +43,14 @@ public class UserServiceImp implements UserService {
     MailService mailService;
 
     @Override
-    public UserResponse createUser(UserCreationRequest request) throws MessagingException, IOException {
+    public UserResponse createUser(UserCreationRequest request, UserStatusEnum status) throws MessagingException, IOException {
         if(userRepository.findByAccountType(request.getAccountType()).isPresent()){
             throw new RentalHomeDataModelNotFoundException("Account already existed");
         }
         User user = userMapper.userToUser(request);
-        user.setEnabled(false);
+        if(status.equals(UserStatusEnum.INVALID)){
+            user.setStatus(UserStatusEnum.INVALID);
+        }
         user.setVerificationCode(VelocityUtil.generateVerificationCode());
 
         String password = !user.getAccountType().contains("@gmail") ? passwordEncoder.encode(request.getPassword())
@@ -61,7 +65,7 @@ public class UserServiceImp implements UserService {
 
         Map<String, Object> emailParams = new HashMap<>();
         emailParams.put("name", user.getName());
-        emailParams.put("link", "http://localhost:8080/rentalHome/users/verify?code=" + user.getVerificationCode() + "&emailorphone=" + user.getAccountType());
+        emailParams.put("link", "http://localhost:8080/rentalHome/users/verify?code=" + user.getVerificationCode() + "&email=" + user.getAccountType());
 
         mailService.sendTemplateEmail(request.getAccountType(), "Email Verification", emailParams, "Register.vm");
 
@@ -87,5 +91,23 @@ public class UserServiceImp implements UserService {
                 .orElseThrow(() -> new RentalHomeDataModelNotFoundException("User is not existed"));
 
         return userMapper.userToUserResponse(user);
+    }
+
+    @Override
+    public void verify(String email, String code) {
+        User user = userRepository.findByAccountType(email)
+                .orElseThrow(() -> new RentalHomeDataModelNotFoundException("User not found"));
+
+        if(user.getStatus() == UserStatusEnum.VALID) {
+            throw new RuntimeException("User already verified");
+        }
+
+        if(!StringUtils.equals(code, user.getVerificationCode())){
+            throw new RuntimeException("Invalid verification code");
+        }
+
+        user.setStatus(UserStatusEnum.VALID);
+        user.setVerificationCode(null);
+        userRepository.save(user);
     }
 }

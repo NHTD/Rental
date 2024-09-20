@@ -1,5 +1,6 @@
 package com.example.server.models;
 
+import com.example.server.enums.UserStatusEnum;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -38,10 +39,10 @@ public class User implements UserDetails {
     String zalo;
 
     @Column(name = "google_account_id")
-    private String googleAccountId;
+    String googleAccountId;
 
-    @Column(name = "facebook_url")
-    String facebookUrl;
+    @Column(name = "facebook_account_id")
+    String facebookAccountId;
 //
 //    @Column(name = "avatar", length = 2000)
 //    String avatar;
@@ -49,8 +50,9 @@ public class User implements UserDetails {
     @Column(name = "verification_code")
     String verificationCode;
 
-    @Column(name = "is_enabled")
-    boolean isEnabled;
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    UserStatusEnum status;
 
     @Column(name = "created_at")
     LocalDateTime createdAt;
