@@ -4,12 +4,15 @@ import com.example.server.dtos.request.AuthenticationRequest;
 import com.example.server.dtos.request.UserCreationRequest;
 import com.example.server.dtos.response.AuthenticationResponse;
 import com.example.server.dtos.response.ResponseObject;
+import com.example.server.dtos.response.UserResponse;
 import com.example.server.enums.UserStatusEnum;
 import com.example.server.models.User;
 import com.example.server.repositories.UserRepository;
 import com.example.server.services.AuthenticationService;
 import com.example.server.services.UserService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -17,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 
@@ -92,6 +96,10 @@ public class AuthenticationController {
         if(!user.isPresent()){
             userService.createUser(userCreationRequest, UserStatusEnum.INVALID);
         }
-        return this.signIn(authenticationRequest);
+
+        AuthenticationResponse authResponse = authenticationService.signIn(authenticationRequest);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ResponseObject("Login successful", HttpStatus.OK, authResponse));
     }
 }
