@@ -32,7 +32,7 @@ public class CategoryServiceImp implements CategoryService {
         }
         Category category = categoryMapper.categoryToCategory(request);
 
-        return categoryMapper.categoryToCategoryResponse(category);
+        return categoryMapper.categoryToCategoryResponse(categoryRepository.save(category));
     }
 
     @Override
