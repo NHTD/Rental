@@ -43,7 +43,7 @@ public class JwtTokenValidate extends OncePerRequestFilter {
                 List<GrantedAuthority> auth = AuthorityUtils.commaSeparatedStringToAuthorityList(authorities);
                 Authentication authentication = new UsernamePasswordAuthenticationToken(accountType, null, auth);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-            }catch (Exception ex) {
+            }catch (RentalHomeForbiddenException ex) {
                 throw new RentalHomeForbiddenException("Invalid token");
             }
         }
