@@ -11,7 +11,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ImageRequest {
     @JsonProperty("post_id")
-    Long postId;
+    String postId;
 
     @JsonProperty("image_url")
     String image;

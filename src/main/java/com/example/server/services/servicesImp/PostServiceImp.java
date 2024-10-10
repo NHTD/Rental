@@ -4,6 +4,7 @@ import com.example.server.dtos.request.ImageRequest;
 import com.example.server.dtos.request.PostRequest;
 import com.example.server.dtos.response.CloudinaryResponse;
 import com.example.server.dtos.response.ImageResponse;
+import com.example.server.dtos.response.PostListResponse;
 import com.example.server.dtos.response.PostResponse;
 import com.example.server.enums.PostStatusEnum;
 import com.example.server.exception.RentalHomeDataModelNotFoundException;
@@ -33,9 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.crypto.SecretKey;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -65,10 +64,12 @@ public class PostServiceImp implements PostService {
                 .orElseThrow(() -> new RentalHomeDataModelNotFoundException("This price code ({}) is not existed", request.getPriceCode()));
         Province province = provinceRepository.findProvinceByCode(request.getProvinceCode())
                 .orElseThrow(() -> new RentalHomeDataModelNotFoundException("This province code ({}) is not existed", request.getProvinceCode()));
+        Category category = categoryRepository.findCategoryByCode(request.getCategoryCode())
+                .orElseThrow(() -> new RentalHomeDataModelNotFoundException("This category code ({}) is not existed", request.getCategoryCode()));
 
         Attribute attribute = Attribute.builder()
-                .price(request.getPrice())
-                .acreage(request.getAcreage())
+                .price(String.valueOf(request.getPriceNumber()))
+                .acreage(String.valueOf(request.getAcreage()))
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -84,6 +85,7 @@ public class PostServiceImp implements PostService {
         post.setArea(area);
         post.setPrice(price);
         post.setProvince(province);
+        post.setCategory(category);
 
         return postMapper.postToPostResponse(postRepository.save(post));
     }
@@ -109,24 +111,26 @@ public class PostServiceImp implements PostService {
         final Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RentalHomeDataModelNotFoundException("Post is not found"));
 
-
         List<ImageResponse> images = new ArrayList<>();
         for(MultipartFile file : files) {
             if(file.getSize() == 0){
                 continue;
             }
+            Image image = new Image();
+            image.setOrginalFile(file.getOriginalFilename());
+
             FileUploadUtils.assertAllowed(file, FileUploadUtils.IMAGE_PATTERN);
             String fileName = FileUploadUtils.getFilename(file.getOriginalFilename());
             CloudinaryResponse response = cloudinaryService.uploadFile(file, fileName);
 
-            Image image = new Image();
             ImageRequest imageRequest = ImageRequest.builder().image(response.getUrl()).build();
             image.setImage(imageRequest.getImage());
             image.setPost(post);
-            post.setCloudinaryImageId(response.getPublicId());
+            image.setCloudinaryImageId(response.getPublicId());
+            image.setOrginalFile(file.getOriginalFilename());
 
             Image image1 = imageRepository.save(image);
-            ImageResponse imageResponse = ImageResponse.builder().image(image1.getImage()).postId(post.getId()).build();
+            ImageResponse imageResponse = ImageResponse.builder().originalFile(image1.getOrginalFile()).image(image1.getImage()).postId(id).build();
 
             images.add(imageResponse);
         }
@@ -164,11 +168,72 @@ public class PostServiceImp implements PostService {
     }
 
     @Override
-//    @Scheduled(cron = "0 0 24 * * *")
+    public PostResponse updatePost(String postId, PostRequest postRequest) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RentalHomeDataModelNotFoundException("This post is not found"));
+
+        postMapper.postToUpdatePost(post, postRequest);
+
+        User user = userRepository.findById(postRequest.getUserId())
+                .orElseThrow(() -> new RentalHomeDataModelNotFoundException("This user id is not existed"));
+        Area area = areaRepository.findAreaByCode(postRequest.getAreaCode())
+                .orElseThrow(() -> new RentalHomeDataModelNotFoundException("This area code ({}) is not existed", postRequest.getAreaCode()));
+        Price price = priceRepository.findPriceByCode(postRequest.getPriceCode())
+                .orElseThrow(() -> new RentalHomeDataModelNotFoundException("This price code ({}) is not existed", postRequest.getPriceCode()));
+        Province province = provinceRepository.findProvinceByCode(postRequest.getProvinceCode())
+                .orElseThrow(() -> new RentalHomeDataModelNotFoundException("This province code ({}) is not existed", postRequest.getProvinceCode()));
+        Category category = categoryRepository.findCategoryByCode(postRequest.getCategoryCode())
+                .orElseThrow(() -> new RentalHomeDataModelNotFoundException("This category code ({}) is not existed", postRequest.getCategoryCode()));
+
+        post.setUser(user);
+        post.setArea(area);
+        post.setPrice(price);
+        post.setProvince(province);
+        post.setCategory(category);
+        post.setStatus(PostStatusEnum.ACTIVE);
+
+        // Lưu lại thực thể đã cập nhật
+        return postMapper.postToPostResponse(postRepository.save(post));
+    }
+
+
+    @Override
+    public List<ImageResponse> updateImage(String postId, List<MultipartFile> files) throws Exception {
+       postRepository.findById(postId)
+                .orElseThrow(() -> new RentalHomeDataModelNotFoundException("This post is not existed"));
+
+        List<Image> existingImages = imageRepository.getAllOriginalFileInPost(postId);
+
+        Set<String> newFileNames = new HashSet<>();
+        for (MultipartFile file : files) {
+            if (file.getSize() > 0) {
+                newFileNames.add(file.getOriginalFilename());
+            }
+        }
+
+        for (Image img : existingImages) {
+            if (newFileNames.contains(img.getOrginalFile())) {
+                cloudinaryService.deleteFile(img.getCloudinaryImageId());
+                imageRepository.deleteImageByOriginalFile(img.getOrginalFile(), postId);
+            }
+        }
+
+        return this.uploadImage(postId, files);
+    }
+
+    @Override
+    public PostResponse getPostById(String postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RentalHomeDataModelNotFoundException("This post is not found"));
+
+        return postMapper.postToPostResponse(post);
+    }
+
+    @Override
+    @Scheduled(cron = "0 0 23 * * *")
     @Transactional
     public void updateExpiredPost() {
         List<Post> activePosts = postRepository.findByStatus(PostStatusEnum.ACTIVE);
-
         activePosts.forEach(post -> {
             LocalDateTime createdAt = post.getCreatedAt();
             LocalDateTime expirationDate = createdAt.plusMonths(5);
@@ -178,5 +243,10 @@ public class PostServiceImp implements PostService {
                 postRepository.save(post);
             }
         });
+    }
+
+    @Override
+    public void deletePostById(String postId) {
+        postRepository.deleteById(postId);
     }
 }

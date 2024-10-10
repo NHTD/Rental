@@ -3,6 +3,8 @@ package com.example.server.dtos.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -12,4 +14,6 @@ public class ProvinceResponse {
     Long id;
     String code;
     String value;
+
+    List<DistrictResponse> districts;
 }

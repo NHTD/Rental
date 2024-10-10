@@ -24,6 +24,8 @@ public class UserResponse {
     String zalo;
     String googleAccountId;
     String facebookAccountId;
+    String otp;
+    String avatar;
 
     Set<Role> roles;
 }

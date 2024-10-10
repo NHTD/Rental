@@ -23,10 +23,16 @@ public class Image {
     @Column(columnDefinition = "LONGTEXT")
     String image;
 
+    @Column(name = "original_file")
+    String orginalFile;
+
     @ManyToOne
     @JoinColumn(name = "post_id")
     @JsonIgnore
     Post post;
+
+    @Column(name = "cloudinary_image_id")
+    private String cloudinaryImageId;
 
     @Column(name = "created_at")
     LocalDateTime createdAt;

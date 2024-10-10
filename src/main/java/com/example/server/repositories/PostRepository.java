@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, String> {
@@ -32,4 +33,6 @@ public interface PostRepository extends JpaRepository<Post, String> {
     Page<Post> getPostsOfUser(Pageable pageable, String accountType);
 
     List<Post> findByStatus(PostStatusEnum status);
+
+    Optional<Post> findByTitle(String title);
 }

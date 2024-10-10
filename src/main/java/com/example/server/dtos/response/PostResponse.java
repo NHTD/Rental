@@ -22,7 +22,7 @@ public class PostResponse {
     String id;
 
     String title;
-    byte star;
+    int star;
 
     String address;
 
@@ -33,17 +33,15 @@ public class PostResponse {
 
     User user;
 
-    String cloudinaryImageId;
-
     Float priceNumber;
 
-    String priceCode;
+    Price price;
 
     Float areaNumber;
 
-    String areaCode;
+    Area area;
 
-    String provinceCode;
+    Province province;
 
     List<ImageResponse> images;
 

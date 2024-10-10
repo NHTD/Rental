@@ -1,24 +1,37 @@
 package com.example.server.services.servicesImp;
 
 import com.example.server.dtos.request.AuthenticationRequest;
+import com.example.server.dtos.request.PasswordRequest;
+import com.example.server.dtos.request.UserRequest;
 import com.example.server.dtos.response.AuthenticationResponse;
+import com.example.server.enums.UserStatusEnum;
 import com.example.server.exception.RentalHomeDataInvalidException;
+import com.example.server.exception.RentalHomeDataModelNotFoundException;
+import com.example.server.models.User;
+import com.example.server.repositories.UserRepository;
 import com.example.server.security.JwtProvider;
 import com.example.server.security.UserDetailsServiceImp;
 import com.example.server.services.AuthenticationService;
+import com.example.server.services.MailService;
+import com.example.server.services.SmsService;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeRequestUrl;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.gson.Gson;
+import jakarta.mail.MessagingException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.apache.commons.lang3.StringUtils;
+import org.springdoc.core.service.SecurityService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -26,6 +39,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -56,9 +70,18 @@ public class AuthenticationServiceImp implements AuthenticationService {
 
     final UserDetailsServiceImp userDetailsService;
     final PasswordEncoder passwordEncoder;
+    final UserRepository userRepository;
+    final MailService mailService;
+    final SmsService smsService;
 
     @Override
     public AuthenticationResponse signIn(AuthenticationRequest request) {
+        User user = userRepository.findByAccountType(request.getAccountType())
+                .orElseThrow(() -> new RentalHomeDataModelNotFoundException("Tài khoản không tồn tại"));
+
+        if(user.getStatus().equals(UserStatusEnum.INVALID)) {
+            throw new RentalHomeDataInvalidException("Tài khoản này chưa được xác thực");
+        }
 
         Authentication authentication = authenticate(request.getAccountType(), request.getPassword());
 
@@ -163,5 +186,40 @@ public class AuthenticationServiceImp implements AuthenticationService {
         // Make a GET request to fetch user information
         String userInfoResponse = restTemplate.getForObject(url, String.class);
         return gson.fromJson(userInfoResponse, Map.class);
+    }
+
+    @Override
+    public void changePassword(String accountType, PasswordRequest request) {
+        User user = userRepository.findByAccountType(accountType)
+                .orElseThrow(() -> new RentalHomeDataInvalidException("User not found"));
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new RentalHomeDataInvalidException("Invalid old password");
+        }
+
+        String newPasswordEncoded = passwordEncoder.encode(request.getNewPassword());
+        user.setPassword(newPasswordEncoded);
+
+        userRepository.save(user);
+
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getAccountType());
+        Authentication newAuth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(newAuth);
+    }
+
+    @Override
+    public void verifyAccount(String account) throws MessagingException, IOException {
+        User user = userRepository.findByAccountType(account)
+                .orElseThrow(() -> new RentalHomeDataModelNotFoundException("The {} account is not existed", account));
+        String otp = smsService.generateOtp(account);
+        user.setOtp(otp);
+        Map<String, Object> emailParams = new HashMap<>();
+        emailParams.put("name", user.getName());
+        emailParams.put("link", "http://localhost:3000/tao-mat-khau-moi/" + user.getAccountType());
+        user.setOtp(otp);
+        userRepository.save(user);
+
+        mailService.sendTemplateEmail(account, "Email Verification", emailParams, "ForgotPassword.html");
     }
 }

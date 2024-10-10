@@ -13,6 +13,8 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, String> {
     Optional<User> findByAccountType(String accountType);
 
+    Optional<User> findByOtp(String otp);
+
     @Query("SELECT u.id FROM User u")
     List<String> findAllUserIds();
 

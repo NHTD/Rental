@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Email Verification</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f4;
+                margin: 0;
+                padding: 20px;
+            }
+            .container {
+                max-width: 600px;
+                margin: auto;
+                background: #ffffff;
+                border-radius: 8px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                padding: 20px;
+            }
+            h1 {
+                color: #333;
+            }
+            .otp {
+                font-weight: bold;
+                color: #ff0000;
+                font-size: 50px;
+                margin-top: 0;
+            }
+            .otp-text {
+                font-size: 15px;
+                color: #333333;
+                margin-bottom: 10px;
+            }
+
+            a {
+                display: inline-block;
+                background-color: #ffffff;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                color: #ffffff;
+                padding: 10px 20px;
+                text-decoration: none;
+                border-radius: 5px;
+                margin-top: 15px;
+            }
+            a:hover {
+                background-color: rgba(204, 204, 204, 0.82);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Hi, ${name}</h1>
+            <p class="otp-text">YOUR OTP IS</p>
+            <p class="otp">${otp}</p>
+            <p>Please choose the link below for otp authentication</p>
+            <a href="${link}">Click here to verified email</a>
+        </div>
+    </body>
+</html>

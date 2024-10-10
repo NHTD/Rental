@@ -1,12 +1,19 @@
 package com.example.server.controllers;
 
+import com.example.server.dtos.request.DeleteImageRequest;
+import com.example.server.dtos.request.ImageRequest;
+import com.example.server.dtos.request.JsoupRequest;
 import com.example.server.dtos.request.PostRequest;
 import com.example.server.dtos.response.ImageResponse;
+import com.example.server.dtos.response.JsoupResponse;
 import com.example.server.dtos.response.PostListResponse;
 import com.example.server.dtos.response.PostResponse;
 import com.example.server.enums.PostStatusEnum;
+import com.example.server.models.Image;
 import com.example.server.repositories.*;
+import com.example.server.services.CloudinaryService;
 import com.example.server.services.PostService;
+import com.example.server.services.ScraperService;
 import com.github.javafaker.Address;
 import com.github.javafaker.Faker;
 import lombok.AccessLevel;
@@ -16,13 +23,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/posts")
@@ -31,6 +42,9 @@ import java.util.List;
 public class PostController {
 
     PostService postService;
+    ImageRepository imageRepository;
+    CloudinaryService cloudinaryService;
+    ScraperService scraperService;
 
     @GetMapping
     ResponseEntity<PostListResponse> getPosts(
@@ -69,7 +83,7 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.OK).body(postService.uploadImage(id, files));
     }
 
-    @PostMapping("/createPost")
+    @PostMapping("/create-post")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<PostResponse> createPost(
             @ModelAttribute PostRequest postRequest,
@@ -102,5 +116,46 @@ public class PostController {
         List<PostResponse> postResponses = pageResponse.getContent();
 
         return ResponseEntity.status(HttpStatus.OK).body(PostListResponse.builder().postResponse(postResponses).totalPage(totalPage).build());
+    }
+
+    @PutMapping("/{postId}")
+    ResponseEntity<PostResponse> updatePost(
+            @PathVariable("postId") String postId,
+            @ModelAttribute PostRequest postRequest,
+            @RequestPart("files") Optional<List<MultipartFile>> files
+    ) throws Exception {
+        PostResponse postResponse = postService.updatePost(postId, postRequest);
+
+        if(files.isPresent() && !files.get().isEmpty()) {
+            List<ImageResponse> imageResponses = postService.updateImage(postId, files.get());
+            postResponse.setImages(imageResponses);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(postResponse);
+    }
+
+    @PostMapping(value = "/delete-img")
+    ResponseEntity<String> deleteImage(@RequestBody DeleteImageRequest request) {
+        Image image = imageRepository.getImageByImageUrl(request.getImage());
+        cloudinaryService.deleteFile(image.getCloudinaryImageId());
+        imageRepository.deleteImageByImage(request.getImage());
+
+        return ResponseEntity.status(HttpStatus.OK).body("Delete successful");
+    }
+
+    @DeleteMapping("/{postId}")
+    ResponseEntity<String> deletePostById(@PathVariable("postId") String postId) {
+        postService.deletePostById(postId);
+        return ResponseEntity.status(HttpStatus.OK).body("Delete successfully");
+    }
+
+    @GetMapping("/get-post/{postId}")
+    ResponseEntity<PostResponse> getPostById(@PathVariable("postId") String postId) {
+        return ResponseEntity.status(HttpStatus.OK).body(postService.getPostById(postId));
+    }
+
+    @GetMapping("/scraper")
+    public Set<JsoupResponse> getModel() throws IOException {
+        return  scraperService.getModel();
     }
 }

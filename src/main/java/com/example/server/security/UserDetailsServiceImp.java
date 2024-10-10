@@ -27,7 +27,7 @@ public class UserDetailsServiceImp implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByAccountType(username)
-                .orElseThrow(() -> new RentalHomeDataModelNotFoundException("User with {} phone is not found", username));
+                .orElseThrow(() -> new RentalHomeDataModelNotFoundException("User with {} account is not found", username));
 
         List<GrantedAuthority> authorities = user.getRoles().stream()
                 .flatMap(role -> {

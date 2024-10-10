@@ -2,6 +2,7 @@ package com.example.server.services;
 
 import com.example.server.dtos.request.PostRequest;
 import com.example.server.dtos.response.ImageResponse;
+import com.example.server.dtos.response.PostListResponse;
 import com.example.server.dtos.response.PostResponse;
 import com.example.server.enums.PostStatusEnum;
 import org.quartz.SchedulerException;
@@ -18,5 +19,9 @@ public interface PostService {
     List<PostResponse> getNewPosts();
     List<ImageResponse> uploadImage(String id, List<MultipartFile> files) throws Exception;
     Page<PostResponse> getPostsOfUser(Pageable pageable, String token);
+    PostResponse updatePost(String postId, PostRequest postRequest);
+    List<ImageResponse> updateImage(String id, List<MultipartFile> files) throws Exception;
+    PostResponse getPostById(String postId);
     void updateExpiredPost();
+    void deletePostById(String postId);
 }

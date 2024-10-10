@@ -41,7 +41,7 @@ public class MailServiceImp implements MailService {
         mimeMessageHelper.setFrom(username);
         mimeMessageHelper.setTo(to);
         mimeMessageHelper.setSubject(subject);
-        mimeMessageHelper.setText(content);
+        mimeMessageHelper.setText(content, true);
 
         mailSender.send(mimeMessage);
     }

@@ -1,14 +1,20 @@
 package com.example.server.services;
 
-import com.example.server.dtos.request.UserCreationRequest;
+import com.example.server.dtos.request.UserRequest;
+import com.example.server.dtos.request.UserUpdateRequest;
 import com.example.server.dtos.response.UserResponse;
 import com.example.server.enums.UserStatusEnum;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
 public interface UserService {
-    UserResponse createUser(UserCreationRequest request, UserStatusEnum status) throws MessagingException, IOException;
+    UserResponse createUser(UserRequest request, UserStatusEnum status, String loginType) throws MessagingException, IOException;
     UserResponse getUser(String id);
-    void verify(String email, String code);
+    UserResponse updateUser(String userId, UserUpdateRequest request);
+    void verify(String otp, String accountType) throws IOException;
+    void verifyFromForgotPassword(String otp) throws IOException;
+    String uploadAvatar(String userId, MultipartFile file) throws Exception;
 }

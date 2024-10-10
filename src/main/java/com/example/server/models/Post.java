@@ -23,7 +23,7 @@ public class Post{
     String id;
 
     String title;
-    byte star;
+    int star;
 
     String address;
 
@@ -62,9 +62,6 @@ public class Post{
 
     @Column(name = "area_number")
     Float areaNumber;
-
-    @Column(name = "cloudinary_image_id")
-    private String cloudinaryImageId;
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)

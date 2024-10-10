@@ -49,7 +49,7 @@ public class SecurityConfig {
     @Value("${spring.security.oauth2.client.registration.google.client-secret}")
     String clientSecret;
 
-    final String[] POST_PUBLIC = {"/users", "/authenticate", "/roles", "/permissions", "/posts/generateFakerPosts", "/users/details"};
+    final String[] POST_PUBLIC = {"/users", "/authenticate", "/roles", "/permissions", "/posts/generateFakerPosts", "/users/details", "/sms/send-sms"};
     final String[] GET_PUBLIC = {"/users/**", "/categories", "/posts/**", "/prices", "/areas", "/provinces", "/authenticate/**"};
 
     @Bean

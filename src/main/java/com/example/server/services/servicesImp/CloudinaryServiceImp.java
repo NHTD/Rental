@@ -33,4 +33,16 @@ public class CloudinaryServiceImp implements CloudinaryService {
             throw new Exception("Failed to upload file");
         }
     }
+
+    @Override
+    public void deleteFile(String publicId) {
+        try{
+            Map<String, String> options = new HashMap<>();
+            options.put("invalidate", "true");
+
+            cloudinary.uploader().destroy(publicId, options);
+        }catch (Exception e) {
+            throw new RuntimeException("Failed to delete file");
+        }
+    }
 }

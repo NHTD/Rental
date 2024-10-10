@@ -1,9 +1,7 @@
 package com.example.server.controllers;
 
 import com.example.server.dtos.request.RoleRequest;
-import com.example.server.dtos.request.UserCreationRequest;
 import com.example.server.dtos.response.RoleResponse;
-import com.example.server.dtos.response.UserResponse;
 import com.example.server.services.RoleService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

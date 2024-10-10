@@ -33,7 +33,13 @@ public class User implements UserDetails {
     @Column(name = "account_type")
     String accountType;
 
-    @Column(name = "password", nullable = false)
+    @Column(name = "email")
+    String email;
+
+    @Column(name = "phone")
+    String phone;
+
+    @Column(name = "password")
     String password;
 
     String zalo;
@@ -43,12 +49,15 @@ public class User implements UserDetails {
 
     @Column(name = "facebook_account_id")
     String facebookAccountId;
-//
-//    @Column(name = "avatar", length = 2000)
-//    String avatar;
+
+    @Column(columnDefinition = "LONGTEXT")
+    String avatar;
 
     @Column(name = "verification_code")
     String verificationCode;
+
+    @Column(name = "otp")
+    String otp;
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)

@@ -5,6 +5,8 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -21,6 +23,9 @@ public class Province {
 
     String code;
     String value;
+
+    @OneToMany(mappedBy = "province", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    List<District> districts = new ArrayList<>();
 
     @Column(name = "created_at")
     LocalDateTime createdAt;

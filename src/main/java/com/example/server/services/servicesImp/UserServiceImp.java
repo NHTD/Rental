@@ -1,6 +1,8 @@
 package com.example.server.services.servicesImp;
 
-import com.example.server.dtos.request.UserCreationRequest;
+import com.example.server.dtos.request.UserRequest;
+import com.example.server.dtos.request.UserUpdateRequest;
+import com.example.server.dtos.response.CloudinaryResponse;
 import com.example.server.dtos.response.UserResponse;
 import com.example.server.enums.UserStatusEnum;
 import com.example.server.exception.RentalHomeDataModelNotFoundException;
@@ -10,26 +12,29 @@ import com.example.server.models.User;
 import com.example.server.repositories.RoleRepository;
 import com.example.server.repositories.UserRepository;
 import com.example.server.security.JwtConstant;
+import com.example.server.services.CloudinaryService;
 import com.example.server.services.MailService;
+import com.example.server.services.SmsService;
 import com.example.server.services.UserService;
+import com.example.server.utils.FileUploadUtils;
 import com.example.server.utils.VelocityUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.crypto.SecretKey;
+import javax.swing.text.html.Option;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -38,23 +43,55 @@ public class UserServiceImp implements UserService {
 
     UserRepository userRepository;
     RoleRepository roleRepository;
+    CloudinaryService cloudinaryService;
+
     UserMapper userMapper;
+
     PasswordEncoder passwordEncoder;
+
+    SmsService smsService;
     MailService mailService;
 
     @Override
-    public UserResponse createUser(UserCreationRequest request, UserStatusEnum status) throws MessagingException, IOException {
+    public UserResponse createUser(UserRequest request, UserStatusEnum status, String loginType) throws MessagingException, IOException {
         if(userRepository.findByAccountType(request.getAccountType()).isPresent()){
             throw new RentalHomeDataModelNotFoundException("Account already existed");
         }
+
         User user = userMapper.userToUser(request);
         if(status.equals(UserStatusEnum.INVALID)){
             user.setStatus(UserStatusEnum.INVALID);
         }
-        user.setVerificationCode(VelocityUtil.generateVerificationCode());
 
-        String password = !user.getAccountType().contains("@gmail") ? passwordEncoder.encode(request.getPassword())
-                                                                    : request.getPassword();
+        if("google".equals(loginType) || "facebook".equals(loginType) || request.getAccountType().contains("@gmail")) {
+            user.setEmail(request.getAccountType());
+        } else {
+            user.setPhone(request.getAccountType());
+        }
+
+//        user.setVerificationCode(VelocityUtil.generateVerificationCode());
+
+        String password = "";
+
+        if("google".equals(loginType) || "facebook".equals(loginType)){
+            password = request.getPassword();
+        }else if(request.getAccountType().contains("@gmail")){
+            password = passwordEncoder.encode(request.getPassword());
+            String otp = smsService.generateOtp(request.getAccountType());
+            user.setOtp(otp);
+            Map<String, Object> emailParams = new HashMap<>();
+            emailParams.put("name", user.getName());
+            emailParams.put("otp", user.getOtp());
+            emailParams.put("link", "http://localhost:3000/otp/" + user.getAccountType());
+
+            mailService.sendTemplateEmail(request.getAccountType(), "Email Verification", emailParams, "Register.html");
+        }else{
+            String otp = smsService.generateOtp(request.getAccountType());
+            user.setOtp(otp);
+
+            password = passwordEncoder.encode(request.getPassword());
+            smsService.sendSms("+18"+request.getAccountType(), otp);
+        }
 
         user.setPassword(password);
 
@@ -62,12 +99,6 @@ public class UserServiceImp implements UserService {
                 .orElseThrow(() -> new RentalHomeDataModelNotFoundException("User role is not found"));
 
         user.setRoles(Collections.singleton(role));
-
-        Map<String, Object> emailParams = new HashMap<>();
-        emailParams.put("name", user.getName());
-        emailParams.put("link", "http://localhost:8080/rentalHome/users/verify?code=" + user.getVerificationCode() + "&email=" + user.getAccountType());
-
-        mailService.sendTemplateEmail(request.getAccountType(), "Email Verification", emailParams, "Register.vm");
 
         return userMapper.userToUserResponse(userRepository.save(user));
     }
@@ -94,20 +125,70 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public void verify(String email, String code) {
-        User user = userRepository.findByAccountType(email)
-                .orElseThrow(() -> new RentalHomeDataModelNotFoundException("User not found"));
+    public UserResponse updateUser(String userId, UserUpdateRequest request) {
+        User user = userRepository.findById(userId)
+                        .orElseThrow(() -> new RentalHomeDataModelNotFoundException("This id is not found"));
 
-        if(user.getStatus() == UserStatusEnum.VALID) {
-            throw new RuntimeException("User already verified");
+        userMapper.userToUserUpdate(user, request);
+        if(!request.getEmail().equals(user.getAccountType())){
+            user.setAccountType(request.getEmail());
         }
 
-        if(!StringUtils.equals(code, user.getVerificationCode())){
-            throw new RuntimeException("Invalid verification code");
+        if(user.getAccountType().contains("@gmail")){
+            user.setPhone("");
+        }
+
+        return userMapper.userToUserResponse(userRepository.save(user));
+    }
+
+    @Override
+    public void verify(String otp, String accountType) throws IOException {
+        User user = userRepository.findByAccountType(accountType)
+                .orElseThrow(() -> new RentalHomeDataModelNotFoundException("Tài khoản không tồn tại"));
+
+        if(user.getStatus() == UserStatusEnum.VALID) {
+            throw new RuntimeException("Người dùng đã được xác thực rồi");
+        }
+
+        if(!StringUtils.equals(otp, user.getOtp())){
+            userRepository.deleteById(user.getId());
+            throw new RuntimeException("Otp không chính xác");
         }
 
         user.setStatus(UserStatusEnum.VALID);
-        user.setVerificationCode(null);
+        user.setOtp(null);
         userRepository.save(user);
+    }
+
+    @Override
+    public void verifyFromForgotPassword(String otp) {
+        User user = userRepository.findByOtp(otp)
+                .orElseThrow(() -> new RentalHomeDataModelNotFoundException("Otp is not found"));
+
+        if(user.getStatus() == UserStatusEnum.VALID) {
+            throw new RuntimeException("Người dùng đã được xác thực rồi");
+        }
+
+        if(!StringUtils.equals(otp, user.getOtp())){
+            throw new RuntimeException("Otp không chính xác");
+        }
+
+        user.setStatus(UserStatusEnum.VALID);
+        user.setOtp(null);
+        userRepository.save(user);
+    }
+
+    @Override
+    public String uploadAvatar(String userId, MultipartFile file) throws Exception {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RentalHomeDataModelNotFoundException("User not found"));
+
+        FileUploadUtils.assertAllowed(file, FileUploadUtils.IMAGE_PATTERN);
+        String fileName = FileUploadUtils.getFilename(file.getOriginalFilename());
+        CloudinaryResponse response = cloudinaryService.uploadFile(file, fileName);
+        user.setAvatar(response.getUrl());
+        userRepository.save(user);
+
+        return response.getUrl();
     }
 }
