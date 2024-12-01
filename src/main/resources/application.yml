@@ -19,14 +19,14 @@ spring:
           google:
             client-id: "${GOOGLE_CLIENT_ID:}"
             client-secret: "${GOOGLE_CLIENT_SECRET:}"
-            redirect-uri: "${GOOGLE_REDIRECT_URI:http://localhost:3000/login}"
+            redirect-uri: "${GOOGLE_REDIRECT_URI:}"
             resource-server:
               opaque-token:
                 introspection-uri: "https://googleapis.com"
           facebook:
             client-id: "${FACEBOOK_CLIENT_ID:}"
             client-secret: "${FACEBOOK_CLIENT_SECRET:}"
-            redirect-uri: "${FACEBOOK_REDIRECT_URI:http://localhost:3000/login}"
+            redirect-uri: "${FACEBOOK_REDIRECT_URI:}"
             auth-uri: https://www.facebook.com/v20.0/dialog/oauth
             token-uri: https://graph.facebook.com/v3.0/oauth/access_token
             user-info-uri: https://graph.facebook.com/v3.0/me?fields=id,first_name,middle_name,last_name,name,email,verified,is_verified,picture.width(250).height(250)
@@ -55,4 +55,4 @@ spring:
 
   website:
     urls: https://phongtro123.com
-    fe-url: ${FE_URL:http://localhost:3000}
+    fe-url: ${FE_URL:}
