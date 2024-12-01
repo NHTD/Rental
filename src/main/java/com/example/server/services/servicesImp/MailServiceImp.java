@@ -8,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.Velocity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -16,8 +17,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.Map;
 
 @Service
@@ -53,12 +53,18 @@ public class MailServiceImp implements MailService {
             context.put(entry.getKey(), entry.getValue());
         }
 
-        Resource resource = new ClassPathResource(template);
-        File file = resource.getFile();
-        String folder = file.getPath();
+        // Load template as InputStream from classpath
+        Resource resource = new ClassPathResource(template + File.separator + fileName);
 
-//        String filePath = file.getPath() + File.separator + fileName;
-        String content = VelocityUtil.generateTemplate(folder, fileName, context);
+        // Use Velocity to generate the email content
+        String content;
+        try (InputStream inputStream = resource.getInputStream()) {
+            content = VelocityUtil.generateTemplateFromStream(inputStream, context);
+        }
+
+        // Send the generated HTML email
         sendHtmlMail(to, subject, content);
     }
+
+
 }

@@ -5,7 +5,6 @@ import com.example.server.dtos.response.CategoryResponse;
 import com.example.server.exception.RentalHomeDataInvalidException;
 import com.example.server.exception.RentalHomeDataModelNotFoundException;
 import com.example.server.mapper.CategoryMapper;
-import com.example.server.models.Area;
 import com.example.server.models.Category;
 import com.example.server.repositories.CategoryRepository;
 import com.example.server.services.CategoryService;

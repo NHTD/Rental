@@ -2,7 +2,6 @@ package com.example.server.services;
 
 import com.example.server.dtos.request.AuthenticationRequest;
 import com.example.server.dtos.request.PasswordRequest;
-import com.example.server.dtos.request.UserRequest;
 import com.example.server.dtos.response.AuthenticationResponse;
 import jakarta.mail.MessagingException;
 

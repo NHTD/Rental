@@ -2,7 +2,6 @@ package com.example.server.services.servicesImp;
 
 import com.example.server.dtos.request.AuthenticationRequest;
 import com.example.server.dtos.request.PasswordRequest;
-import com.example.server.dtos.request.UserRequest;
 import com.example.server.dtos.response.AuthenticationResponse;
 import com.example.server.enums.UserStatusEnum;
 import com.example.server.exception.RentalHomeDataInvalidException;
@@ -23,15 +22,12 @@ import jakarta.mail.MessagingException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.apache.commons.lang3.StringUtils;
-import org.springdoc.core.service.SecurityService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -57,16 +53,16 @@ public class AuthenticationServiceImp implements AuthenticationService {
     String googleRedirectUri;
 
     @Value("${spring.security.oauth2.client.registration.facebook.redirect-uri}")
-    private String facebookRedirectUri;
+    String facebookRedirectUri;
 
     @Value("${spring.security.oauth2.client.registration.facebook.client-id}")
-    private String facebookClientId;
+    String facebookClientId;
 
     @Value("${spring.security.oauth2.client.registration.facebook.client-secret}")
-    private String facebookClientSecret;
+    String facebookClientSecret;
 
     @Value("${spring.security.oauth2.client.registration.facebook.auth-uri}")
-    private String facebookAuthUri;
+    String facebookAuthUri;
 
     final UserDetailsServiceImp userDetailsService;
     final PasswordEncoder passwordEncoder;

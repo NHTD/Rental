@@ -1,0 +1,58 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /rental-home
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/rental_home?serverTimezone=UTC&allowPublicKeyRetrieval=true}
+    username: ${SPRING_DATASOURCE_USERNAME:}
+    password: ${MYSQL_ROOT_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: "${GOOGLE_CLIENT_ID:}"
+            client-secret: "${GOOGLE_CLIENT_SECRET:}"
+            redirect-uri: "${GOOGLE_REDIRECT_URI:http://localhost:3000/login}"
+            resource-server:
+              opaque-token:
+                introspection-uri: "https://googleapis.com"
+          facebook:
+            client-id: "${FACEBOOK_CLIENT_ID:}"
+            client-secret: "${FACEBOOK_CLIENT_SECRET:}"
+            redirect-uri: "${FACEBOOK_REDIRECT_URI:http://localhost:3000/login}"
+            auth-uri: https://www.facebook.com/v20.0/dialog/oauth
+            token-uri: https://graph.facebook.com/v3.0/oauth/access_token
+            user-info-uri: https://graph.facebook.com/v3.0/me?fields=id,first_name,middle_name,last_name,name,email,verified,is_verified,picture.width(250).height(250)
+            scope:
+              - email
+              - public_profile
+
+  mail:
+    host: "${MAIL_HOST:smtp.gmail.com}"
+    port: "${MAIL_PORT:587}"
+    username: "${MAIL_USERNAME:dungprorua778899@gmail.com}"
+    password: "${MAIL_PASSWORD:bohqcvffqrvqcfxj}"
+    encoding: "${MAIL_ENCODING:UTF-8}"
+    template: "${MAIL_TEMPLATE:/templates/email}"
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:true}
+          starttls:
+            enable: true
+
+  twilio:
+    account-sid: ${TWILIO_ACCOUNT_SID:}
+    auth-token: ${TWILIO_ACCOUNT_TOKEN:}
+    phone-number-trial: ${TWILIO_PHONE_NUMBER:}
+
+  website:
+    urls: https://phongtro123.com
+    fe-url: ${FE_URL:http://localhost:3000}

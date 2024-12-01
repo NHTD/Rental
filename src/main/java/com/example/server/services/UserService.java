@@ -5,7 +5,6 @@ import com.example.server.dtos.request.UserUpdateRequest;
 import com.example.server.dtos.response.UserResponse;
 import com.example.server.enums.UserStatusEnum;
 import jakarta.mail.MessagingException;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;

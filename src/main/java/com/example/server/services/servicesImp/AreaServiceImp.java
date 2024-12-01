@@ -6,7 +6,6 @@ import com.example.server.exception.RentalHomeDataInvalidException;
 import com.example.server.exception.RentalHomeDataModelNotFoundException;
 import com.example.server.mapper.AreaMapper;
 import com.example.server.models.Area;
-import com.example.server.models.Price;
 import com.example.server.repositories.AreaRepository;
 import com.example.server.services.AreaService;
 import lombok.AccessLevel;
@@ -20,11 +19,11 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class AreaServiceImp implements AreaService {
 
-    AreaRepository areaRepository;
-    AreaMapper areaMapper;
+    final AreaRepository areaRepository;
+    final AreaMapper areaMapper;
 
     @Override
     public AreaResponse createArea(AreaRequest request) {

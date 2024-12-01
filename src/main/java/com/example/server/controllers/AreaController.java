@@ -1,11 +1,8 @@
 package com.example.server.controllers;
 
 import com.example.server.dtos.request.AreaRequest;
-import com.example.server.dtos.request.PriceRequest;
 import com.example.server.dtos.response.AreaResponse;
-import com.example.server.dtos.response.PriceResponse;
 import com.example.server.services.AreaService;
-import com.example.server.services.PriceService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

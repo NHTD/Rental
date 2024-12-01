@@ -17,40 +17,41 @@ import com.example.server.services.MailService;
 import com.example.server.services.SmsService;
 import com.example.server.services.UserService;
 import com.example.server.utils.FileUploadUtils;
-import com.example.server.utils.VelocityUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.mail.MessagingException;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.crypto.SecretKey;
-import javax.swing.text.html.Option;
 import java.io.IOException;
 import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserServiceImp implements UserService {
 
-    UserRepository userRepository;
-    RoleRepository roleRepository;
-    CloudinaryService cloudinaryService;
+    final UserRepository userRepository;
+    final RoleRepository roleRepository;
+    final CloudinaryService cloudinaryService;
 
-    UserMapper userMapper;
+    final UserMapper userMapper;
 
-    PasswordEncoder passwordEncoder;
+    final PasswordEncoder passwordEncoder;
 
-    SmsService smsService;
-    MailService mailService;
+    final SmsService smsService;
+    final MailService mailService;
+
+    @Value("${spring.website.fe-url}")
+    String feUrl;
 
     @Override
     public UserResponse createUser(UserRequest request, UserStatusEnum status, String loginType) throws MessagingException, IOException {
@@ -82,7 +83,7 @@ public class UserServiceImp implements UserService {
             Map<String, Object> emailParams = new HashMap<>();
             emailParams.put("name", user.getName());
             emailParams.put("otp", user.getOtp());
-            emailParams.put("link", "http://localhost:3000/otp/" + user.getAccountType());
+            emailParams.put("link", feUrl + "/otp/" + user.getAccountType());
 
             mailService.sendTemplateEmail(request.getAccountType(), "Email Verification", emailParams, "Register.html");
         }else{
@@ -142,7 +143,7 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public void verify(String otp, String accountType) throws IOException {
+    public void verify(String otp, String accountType) {
         User user = userRepository.findByAccountType(accountType)
                 .orElseThrow(() -> new RentalHomeDataModelNotFoundException("Tài khoản không tồn tại"));
 

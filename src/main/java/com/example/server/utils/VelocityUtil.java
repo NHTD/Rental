@@ -5,7 +5,7 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.app.VelocityEngine;
 
-import java.io.StringWriter;
+import java.io.*;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Properties;
@@ -30,5 +30,15 @@ public class VelocityUtil {
         byte[] bytes = new byte[24];
         random.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    public static String generateTemplateFromStream(InputStream inputStream, VelocityContext context) throws IOException {
+        StringWriter writer = new StringWriter();
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+            Velocity.evaluate(context, writer, "", reader);
+        }
+
+        return writer.toString();
     }
 }

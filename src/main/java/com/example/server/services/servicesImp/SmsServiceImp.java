@@ -15,8 +15,6 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
 @Service
@@ -59,7 +57,6 @@ public class SmsServiceImp implements SmsService {
     @Override
     public String generateOtp(String phoneNumber) {
         Random random = new Random();
-        String otp = String.valueOf(random.nextInt(999999));
-        return otp;
+        return String.valueOf(random.nextInt(999999));
     }
 }

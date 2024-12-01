@@ -1,9 +1,7 @@
 package com.example.server.services;
 
 import com.example.server.dtos.request.AreaRequest;
-import com.example.server.dtos.request.PriceRequest;
 import com.example.server.dtos.response.AreaResponse;
-import com.example.server.dtos.response.PriceResponse;
 
 import java.util.List;
 

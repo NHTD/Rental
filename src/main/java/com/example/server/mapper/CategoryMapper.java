@@ -1,9 +1,7 @@
 package com.example.server.mapper;
 
-import com.example.server.dtos.request.AreaRequest;
 import com.example.server.dtos.request.CategoryRequest;
 import com.example.server.dtos.response.CategoryResponse;
-import com.example.server.models.Area;
 import com.example.server.models.Category;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
