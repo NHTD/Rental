@@ -31,10 +31,15 @@ jobs:
         id: timestamp
         run: echo "TAG=$(date +'%Y%m%d%H%M')" >> $GITHUB_ENV
 
-      # Step 5: Build Docker Image using the built JAR file
+      # Step 5: Downcase
+      - name: downcase REPO
+        run: |
+          echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
+
+      # Step 6: Build Docker Image using the built JAR file
       - name: Build Docker Image
         run: |
-          docker build -t ghcr.io/${{ github.repository }}/rental-backend:${{ env.TAG }} -t ghcr.io/${{ github.repository }}/rental-backend:latest .
+          docker build -t ghcr.io/${{ env.REPO }}/rental-backend:${{ env.TAG }} -t ghcr.io/${{ env.REPO }}/rental-backend:latest .
 
       # Step 6: Log in to GitHub Container Registry
       - name: Log in to GitHub Container Registry
@@ -44,8 +49,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 6: Push Docker Image to GitHub Container Registry
+      # Step 7: Push Docker Image to GitHub Container Registry
       - name: Push Docker Image to GitHub Container Registry
         run: |
-          docker push ghcr.io/${{ github.repository }}/rental-backend:${{ env.TAG }}
-          docker push ghcr.io/${{ github.repository }}/rental-backend:latest
+          docker push ghcr.io/${{ env.REPO }}/rental-backend:${{ env.TAG }}
+          docker push ghcr.io/${{ env.REPO }}/rental-backend:latest
