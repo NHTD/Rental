@@ -24,7 +24,7 @@ jobs:
       # Step 3: Build the JAR file using Maven (skip tests)
       - name: Build JAR file
         run: |
-          ./mvnw clean package -DskipTests
+          chmod +x mvnw && ./mvnw clean package -DskipTests
 
       # Step 4: Generate timestamp-based tag (yyyyMMddHHmm)
       - name: Generate timestamp-based tag
